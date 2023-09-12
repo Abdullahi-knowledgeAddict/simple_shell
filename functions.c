@@ -37,4 +37,78 @@ int executor(char **argv, char **env)
 	}
 	return (0);
 }
+/**
+ * comligner - aligns a command line to rm unnecessary spaces ahead of it
+ * @lineptr: a pointer to command line (string)
+ *
+ * Return: the numb of memory to store the address of each word to make tokens
+ */
+int comligner(char **lineptr)
+{
+	int len, count, arg_len;
 
+	arg_len = 2;/*counted for first arg and NULL*/
+	len = count = 0;
+	while ((*lineptr)[len] != '\0')
+	{
+		if (**lineptr < '!')/*eliminate unnecessary spaces in front*/
+			(*lineptr)++;
+		else
+		{/*len only start incrementing at this stage*/
+			if ((*lineptr)[len++] == 32 || (*lineptr)[len] == 9)
+				(*lineptr)[len] >= '!' ? arg_len++ : arg_len;
+		}
+	}
+	return (arg_len);
+}
+
+/**
+ * tokenizer - takes a buffer container a command line and tokenizes it
+ * @lineptr: the buffer container the command line
+ *
+ * Return: a buffer container the address of each token
+ */
+char **tokenizer(char *lineptr)
+{/* 9 = ' ', 32 = '	', 10 = '\n', 0 = '\0'*/
+	int argc, andex, lndex;
+	char **argv, *c;
+
+	argc = comligner(&lineptr);/* align command and get req spac for args*/
+	argv = malloc(sizeof(char *) * argc);
+	if (argv == NULL)/* error handling*/
+		perror(NULL);
+	for (andex = lndex = 0; lineptr[lndex] != '\0' && argv; lndex++)
+	{
+		c = lineptr + lndex;/* use c to shorten code using char addr*/
+		/*seperate each word in lineptr*/
+		if (*c >= '!')
+		{
+			if (*(c + 1) == 9 || *(c + 1) == 32 || *(c + 1) == 10)
+			{
+				*(c + 1) = 0;/*seperating with '\0'*/
+				lndex++;
+				if (*(c + 2) >= '!')
+				{/* when a char is after the space*/
+					++lndex;
+					argv[andex++] = lineptr + lndex;
+				}
+			}
+		}
+		/* assigning args to argv*/
+		if (lndex == 0)/* first arg*/
+			argv[andex++] = c;
+		/*remaining args*/
+		else if (*c == 32 || *c == 9)
+		{
+			if (*(c + 1) == 10)
+			{/*taking care of newline*/
+				*(c + 1) = 0;
+				lndex++;
+			}
+			else if (*(c + 1) >= '!')
+				argv[andex++] = c + 1;
+		}
+	}
+	argv[andex] = NULL;/*adding NULL at the end of argv*/
+	return (argv);
+}

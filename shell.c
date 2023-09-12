@@ -21,18 +21,18 @@ int main(int argc, char **argv, char **env)
 		return (0);
 	}
 
-	argv = malloc(sizeof(char *) * 2); /* a nullable argv to aid execve */
-	argv[1] = NULL;
 	buff_size = 0;
 	lineptr = NULL;/*space to keep command line args*/
 	write(STDOUT_FILENO, "$ ", 2);/*first prompt*/
 	while ((line_length = getline(&lineptr, &buff_size, stdin)) != -1)
 	{
-		lineptr[line_length - 1] = '\0'; /*'\n' replaced with '\0'*/
-		argv[0] = lineptr;
-		executor(argv, env);
+		if (line_length > 1)
+			argv = tokenizer(lineptr);
+		if (argv != NULL)
+			executor(argv, env);
 		write(STDOUT_FILENO, "$ ", 2);
+		free(argv);/*freeing argv*/
 	}
-	free(argv);
+	free(lineptr);/*freeing lineptr*/
 	return (0);
 }

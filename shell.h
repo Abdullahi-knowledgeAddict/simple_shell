@@ -8,4 +8,6 @@
 #include <fcntl.h>
 
 int executor(char **argv, char **env);
+char **tokenizer(char *lineptr);
+int comligner(char **lineptr);
 #endif
