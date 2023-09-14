@@ -6,8 +6,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <fcntl.h>
-
+extern char **environ;
 int executor(char **argv, char **env);
 char **tokenizer(char *lineptr);
 int comligner(char **lineptr);
+char *_getenv(char *value);
+char *pathfinder(char *cmd);
 #endif

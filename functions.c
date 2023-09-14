@@ -80,8 +80,7 @@ char **tokenizer(char *lineptr)
 	for (andex = lndex = 0; lineptr[lndex] != '\0' && argv; lndex++)
 	{
 		c = lineptr + lndex;/* use c to shorten code using char addr*/
-		/*seperate each word in lineptr*/
-		if (*c >= '!')
+		if (*c >= '!')/*seperate each word in lineptr*/
 		{
 			if (*(c + 1) == 9 || *(c + 1) == 32 || *(c + 1) == 10)
 			{
@@ -94,12 +93,10 @@ char **tokenizer(char *lineptr)
 				}
 			}
 		}
-		/* assigning args to argv*/
-		if (lndex == 0)/* first arg*/
+		if (lndex == 0)/* first arg*//* assigning args to argv*/
 			argv[andex++] = c;
-		/*remaining args*/
 		else if (*c == 32 || *c == 9)
-		{
+		{/*remaining args*/
 			if (*(c + 1) == 10)
 			{/*taking care of newline*/
 				*(c + 1) = 0;
@@ -112,3 +109,41 @@ char **tokenizer(char *lineptr)
 	argv[andex] = NULL;/*adding NULL at the end of argv*/
 	return (argv);
 }
+
+/**
+ * _getenv - Searches the environmental variable for
+ * @name: variable name
+ *
+ * Return: a pointer to the corresponding value or NULL if it doesn't exist
+ */
+char *_getenv(char *name)
+{
+	char **ev;
+	int sd;/* sd-> string index*/
+	sd = 0;
+
+	ev = environ;/* global variable in the header file */
+	while (*ev)
+	{
+		if (name[sd] == (*ev)[sd])
+		{
+			if (name[sd + 1] == '\0' && (*ev)[sd + 1] == '=')
+				return ((*ev) + sd + 2);
+			sd++;
+		}
+		else
+		{
+			ev++;
+			sd = 0;
+		}
+	}
+	return (*ev);
+}
+/**
+ * pathfinder - find the specific path to command using env[path]
+ * @cmd: The first element of argv
+ *
+ * Return: pointer to the command directory or NULL if not found
+ */
+char *pathfinder(char *cmd)
+{

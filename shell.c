@@ -13,8 +13,9 @@ int main(int argc, char **argv, char **env)
 {
 	int line_length;
 	size_t buff_size;
-	char *lineptr;
+	char *lineptr, *PATH;
 
+	PATH = _getenv("PATH");
 	if (argc > 1)/* giving shell ability to  interprete command line argument*/
 	{
 		executor(&argv[1], env);
