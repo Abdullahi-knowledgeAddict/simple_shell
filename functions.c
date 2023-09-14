@@ -146,4 +146,4 @@ char *_getenv(char *name)
  * Return: pointer to the command directory or NULL if not found
  */
 char *pathfinder(char *cmd)
-{
+{}

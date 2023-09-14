@@ -12,4 +12,5 @@ char **tokenizer(char *lineptr);
 int comligner(char **lineptr);
 char *_getenv(char *value);
 char *pathfinder(char *cmd);
+char *_strdup(char *s);
 #endif
