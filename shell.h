@@ -20,6 +20,16 @@ typedef struct pathMeta
 	struct pathMeta *nextpath;
 } pathMeta_t;
 
+/**
+ * struct builtin - a data containing, builtin command with their function
+ * @cmd: the commmand
+ * @cmd_f: the function that executes the command
+ */
+typedef struct builtin
+{
+	char *cmd;
+	int (*cmd_f)(void *);
+}buitin_t;
 extern char **environ;
 int executor(char **argv, char **env, pathMeta_t *paths);
 char **tokenizer(char *lineptr);
