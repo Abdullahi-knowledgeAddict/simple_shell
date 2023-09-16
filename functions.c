@@ -12,10 +12,8 @@ int executor(char **argv, char **env, pathMeta_t *paths)
 {
 	pid_t pid;
 	int status, errno __attribute__((unused));
-	struct stat st;
 
-	argv[0] = pathfinder(argv[0], paths);
-	if (stat(argv[0], &st) == 0)/*check for commands existence*/
+	if (pathfinder(argv, paths))/*check for commands existence*/
 	{
 		pid = fork();/*duplicating parent process*/
 		if (pid == 0)/* ensuring only child process executes command*/
@@ -148,46 +146,46 @@ char *_getenv(char *name)
  *
  * Return: pointer to the command directory or NULL if not found
  */
-char *pathfinder(char *cmd, pathMeta_t *pathead)
+char *pathfinder(char **cmd, pathMeta_t *pathead)
 {
 	unsigned short cml, lpatl, index, index1;
 	pathMeta_t *copy;
 	char *cmdpath;
 	struct stat st;
-/*taking care of commands already specified with absolute path*/
-	cmd[0][0] == '.' || cmd[0][0] == '/' || cmd == '~' ? return (cmd) : 0;
-	cmdpath = NULL;
+
+	if (cmd[0][0] == '.' || cmd[0][0] == '/')
+		return (cmd[0]);
+	cmdpath = NULL;/*taking care of cmds^ already specified with abs path*/
 	copy = pathead;
-	for (lpatl = cml = 0; cmd[cml] || copy;)
+	for (lpatl = cml = 0; cmd[0][cml] || copy;)
 	{/*getting longest path length*/
 		if (copy)
-		{
-			if (copy->len > lpatl)
-				lpatl = copy->len;
+		{/*if the new len > oldlen assign new*/
+			(copy->len > lpatl) ? lpatl = copy->len : 0;
 			copy = copy->nextpath;
 		}
-		cmd[cml] ? cml++ : 0;/*getting cmd length*/
-	}
-	cmdpath = malloc(sizeof(char) * (lpatl + cml + 1));
-	if (!cmdpath)/*one more for '/' to be appended ^ after path*/
-		return (NULL);/*no space*/
-	for (index = index1 = 0; pathead; index++)
-	{/*now writing full path into cmdpath*/
-		if (pathead->len > index)
-			cmdpath[index] = pathead->path[index];
-		else if (index == pathead->len)
-			cmdpath[index] = '/';/*the '/' before command*/
-		else if (index <= (pathead->len + cml))/*the cmd*/
-			cmdpath[index] = cmd[index1++];
-		else
-		{
-			cmdpath[index] = cmd[index1];
-			if (!(stat(cmdpath, &st)))
-				return (cmdpath);
-			index = -1;/*index++ makes it zero*/
-			index1 = 0;
-			pathead = pathead->nextpath;
+		cmd[0][cml] ? cml++ : 0;/*getting cmd length*/
+	} cmdpath = malloc(sizeof(char) * (lpatl + cml + 1)); /*reserve space*/
+	if (cmdpath)/*one more for '/' to be appended ^ after path*/
+	{/*Entered only cmdpath is not NULL*/
+		for (index = index1 = 0; pathead; index++)
+		{/*now writing full path into cmdpath*/
+			(index == pathead->len) ? cmdpath[index++] = '/' : 0;
+			if (pathead->len > index)
+				cmdpath[index] = pathead->path[index];
+			else if (index <= (pathead->len + cml))/*the cmd*/
+				cmdpath[index] = cmd[0][index1++];
+			else
+			{
+				cmdpath[index] = cmd[0][index1];
+				if (!(stat(cmdpath, &st)))
+					break;
+				index = -1;/*index++ makes it zero*/
+				index1 = 0;
+				pathead = pathead->nextpath;
+			}
 		}
 	}
-	return (NULL);/*pathead is now NULL*/
+	cmdpath && pathead ? cmd[0] = cmdpath : 0;/*change argv[0] if true*/
+	return (cmdpath);
 }
