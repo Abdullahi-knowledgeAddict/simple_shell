@@ -4,15 +4,17 @@
  * executor - of the shell's command line arguement
  * @argv: an array containing the tokens of the command line (command, args)
  * @env: array of environmental variables.
+ * @paths: pointer to linked list of paths, value of environmental paths
  *
  * Return: 0 indicating that the command exits, successful fork, -1 otherwise
  */
-int executor(char **argv, char **env)
+int executor(char **argv, char **env, pathMeta_t *paths)
 {
 	pid_t pid;
 	int status, errno __attribute__((unused));
 	struct stat st;
 
+	argv[0] = pathfinder(argv[0], paths);
 	if (stat(argv[0], &st) == 0)/*check for commands existence*/
 	{
 		pid = fork();/*duplicating parent process*/
@@ -120,8 +122,8 @@ char *_getenv(char *name)
 {
 	char **ev;
 	int sd;/* sd-> string index*/
-	sd = 0;
 
+	sd = 0;
 	ev = environ;/* global variable in the header file */
 	while (*ev)
 	{
@@ -140,10 +142,52 @@ char *_getenv(char *name)
 	return (*ev);
 }
 /**
- * pathfinder - find the specific path to command using env[path]
- * @cmd: The first element of argv
+ * pathfinder - find the specific path to command
+ * @cmd: The first element of argv (command)
+ * @pathead: linked list of paths in PATH
  *
  * Return: pointer to the command directory or NULL if not found
  */
-char *pathfinder(char *cmd)
-{}
+char *pathfinder(char *cmd, pathMeta_t *pathead)
+{
+	unsigned short cml, lpatl, index, index1;
+	pathMeta_t *copy;
+	char *cmdpath;
+	struct stat st;
+/*taking care of commands already specified with absolute path*/
+	cmd[0][0] == '.' || cmd[0][0] == '/' || cmd == '~' ? return (cmd) : 0;
+	cmdpath = NULL;
+	copy = pathead;
+	for (lpatl = cml = 0; cmd[cml] || copy;)
+	{/*getting longest path length*/
+		if (copy)
+		{
+			if (copy->len > lpatl)
+				lpatl = copy->len;
+			copy = copy->nextpath;
+		}
+		cmd[cml] ? cml++ : 0;/*getting cmd length*/
+	}
+	cmdpath = malloc(sizeof(char) * (lpatl + cml + 1));
+	if (!cmdpath)/*one more for '/' to be appended ^ after path*/
+		return (NULL);/*no space*/
+	for (index = index1 = 0; pathead; index++)
+	{/*now writing full path into cmdpath*/
+		if (pathead->len > index)
+			cmdpath[index] = pathead->path[index];
+		else if (index == pathead->len)
+			cmdpath[index] = '/';/*the '/' before command*/
+		else if (index <= (pathead->len + cml))/*the cmd*/
+			cmdpath[index] = cmd[index1++];
+		else
+		{
+			cmdpath[index] = cmd[index1];
+			if (!(stat(cmdpath, &st)))
+				return (cmdpath);
+			index = -1;/*index++ makes it zero*/
+			index1 = 0;
+			pathead = pathead->nextpath;
+		}
+	}
+	return (NULL);/*pathead is now NULL*/
+}
