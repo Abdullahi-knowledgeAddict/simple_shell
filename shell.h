@@ -28,8 +28,8 @@ typedef struct pathMeta
 typedef struct builtin
 {
 	char *cmd;
-	int (*cmd_f)(void *);
-}buitin_t;
+	int (*cmd_f)(char **argv, int argc);
+} buitin_t; /*type to declare this struct type*/
 extern char **environ;
 int executor(char **argv, char **env, pathMeta_t *paths);
 char **tokenizer(char *lineptr);
@@ -39,4 +39,6 @@ char *pathfinder(char **cmd, pathMeta_t *pathead);
 char *_strdup(char *s);
 int pathgen(char *path, pathMeta_t **pathead);
 void pathdegen(pathMeta_t *pathead);
+int ext(char **argv, int argc);
+int cdr(char **argv, int argc);
 #endif

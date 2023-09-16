@@ -71,3 +71,36 @@ void pathdegen(pathMeta_t *pathead)
 		pathead = copy;
 	}
 }
+
+/**
+ * findib - checks if a given command is inbuilt and executes it
+ * @argv: argument vector of command line
+ *
+ * Return: 0 to indicate success and -1 if not found
+ * -2 if matching funtion complains
+ */
+int findib(char **argv)
+{
+	unsigned int idx1, idx2, argc; /* 1 for array 2 for .cmd*/
+	builtin_t cp;
+	buitin_t build[] = {{"exit", ext}, {"cd", cdr}, {NULL, NULL}};
+
+	cp = build[0];/*cp holds the array value keeping code short*/
+	for (argc = 0; argv[argc];)/*getting argc*/
+		argc++;
+	for (idx1 = idx2 = 0; cp.cmd;)
+	{
+		if (cp.cmd[idx2] == argv[0][idx2])
+		{/*comparing command and  cmd in the struct*/
+			if (cp.cmd[idx2 + 1] == '\0' && argv[0][idx2] == '\0')
+				return (cp.cmd_f(argv, argc));/*found a match*/
+			idx2++;
+		}
+		else/*no match yet*/
+		{
+			idx2 = 0;
+			cp = build[++idx1];
+		}
+	}
+	return (-1);/*no match at all*/
+}
