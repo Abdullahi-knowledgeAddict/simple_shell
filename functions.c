@@ -11,25 +11,32 @@
 int executor(char **argv, char **env, pathMeta_t *paths)
 {
 	pid_t pid;
-	int status, errno __attribute__((unused));
+	int status;
+	char *path;
 
-	if (pathfinder(argv, paths))/*check for commands existence*/
+	path = NULL;
+	/*checking if argv[0] is NULL to stop execution*/
+	if (!argv[0])
+		return (0);
+	path = pathfinder(argv, paths);
+	if (path)/*check for commands existence*/
 	{
 		pid = fork();/*duplicating parent process*/
-		if (pid == 0)/* ensuring only child process executes command*/
+		if (pid == 0)/* ensuring only child process*/
 		{
 			/*Handling execution failure*/
-			if (execve(argv[0], argv, env) == -1)
+			if (execve(path, argv, env) == -1)
 				perror("command execution failed\n");
-			exit(98);
+			exit(-1);
 		}
 		else if (pid > 0)/*making parent process wait*/
 			wait(&status);
 		else /*what happens when process duplication fails*/
 		{
-			perror("calling process could not be duplicated\n");
-			exit(99);
+			perror("calling process was not duplicated\n");
+			return (-1);
 		}
+		free(path);
 	}
 	else/* if command doesn't exist*/
 	{
@@ -45,18 +52,25 @@ int executor(char **argv, char **env, pathMeta_t *paths)
  */
 int comligner(char **lineptr)
 {
-	int len, count, arg_len;
+	int len;
+	size_t arg_len;
 
-	arg_len = 2;/*counted for first arg and NULL*/
-	len = count = 0;
+	arg_len = 1;/*counted for first arg and NULL*/
+	len = 0;
 	while ((*lineptr)[len] != '\0')
 	{
 		if (**lineptr < '!')/*eliminate unnecessary spaces in front*/
 			(*lineptr)++;
+		else if (**lineptr >= '!' && len == 0)
+		{
+			arg_len++;
+			len++;
+		}
 		else
 		{/*len only start incrementing at this stage*/
-			if ((*lineptr)[len++] == 32 || (*lineptr)[len] == 9)
-				(*lineptr)[len] >= '!' ? arg_len++ : arg_len;
+			if ((*lineptr)[len] == 32 || (*lineptr)[len] == 9)
+				(*lineptr)[len + 1] >= '!' ? arg_len++ : arg_len;
+			len++;
 		}
 	}
 	return (arg_len);
@@ -80,6 +94,8 @@ char **tokenizer(char *lineptr)
 	for (andex = lndex = 0; lineptr[lndex] != '\0' && argv; lndex++)
 	{
 		c = lineptr + lndex;/* use c to shorten code using char addr*/
+		if (lndex == 0)/* first arg*//* assigning args to argv*/
+			argv[andex++] = c;
 		if (*c >= '!')/*seperate each word in lineptr*/
 		{
 			if (*(c + 1) == 9 || *(c + 1) == 32 || *(c + 1) == 10)
@@ -93,8 +109,6 @@ char **tokenizer(char *lineptr)
 				}
 			}
 		}
-		if (lndex == 0)/* first arg*//* assigning args to argv*/
-			argv[andex++] = c;
 		else if (*c == 32 || *c == 9)
 		{/*remaining args*/
 			if (*(c + 1) == 10)
@@ -140,7 +154,7 @@ char *_getenv(char *name)
 	return (*ev);
 }
 /**
- * pathfinder - find the specific path to command
+ * pathfinder - find the specific path to command or confirm it existence
  * @cmd: The first element of argv (command)
  * @pathead: linked list of paths in PATH
  *
@@ -153,8 +167,8 @@ char *pathfinder(char **cmd, pathMeta_t *pathead)
 	char *cmdpath;
 	struct stat st;
 
-	if (cmd[0][0] == '.' || cmd[0][0] == '/')
-		return (cmd[0]);
+	if (cmd[0][0] == '/' || cmd[0][0] == '.')/*checking cmd with abs path*/
+		return (stat(cmd[0], &st) == 0 ? cmd[0] : NULL);
 	cmdpath = NULL;/*taking care of cmds^ already specified with abs path*/
 	copy = pathead;
 	for (lpatl = cml = 0; cmd[0][cml] || copy;)
@@ -186,6 +200,6 @@ char *pathfinder(char **cmd, pathMeta_t *pathead)
 			}
 		}
 	}
-	cmdpath && pathead ? cmd[0] = cmdpath : 0;/*change argv[0] if true*/
-	return (cmdpath);
+	/* now returning cmdpath if pathead not NULL confirming path found*/
+	return (pathead ? cmdpath : NULL);
 }

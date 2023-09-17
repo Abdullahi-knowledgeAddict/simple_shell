@@ -59,41 +59,42 @@ int pathgen(char *path, pathMeta_t **pathead)
  * pathdegen - free all allocated blocks for paths list
  * @pathead: pointer to the first node of the linked list
  */
-void pathdegen(pathMeta_t *pathead)
+void pathdegen(pathMeta_t **pathead)
 {
 	pathMeta_t *copy;
 
 	copy = NULL;
-	while (pathead != NULL)
+	while (*pathead != NULL)
 	{
-		copy = pathead->nextpath;
-		free(pathead);
-		pathead = copy;
+		copy = (*pathead)->nextpath;
+		free(*pathead);
+		*pathead = copy;
 	}
 }
 
 /**
  * findib - checks if a given command is inbuilt and executes it
  * @argv: argument vector of command line
+ * @pathead: pointer to the address of the head of path linked list
  *
  * Return: 0 to indicate success and -1 if not found
  * -2 if matching funtion complains
  */
-int findib(char **argv)
+int findib(char **argv, pathMeta_t **pathead)
 {
-	unsigned int idx1, idx2, argc; /* 1 for array 2 for .cmd*/
+	size_t idx1, idx2, argc; /* 1 for array 2 for .cmd*/
 	builtin_t cp;
-	buitin_t build[] = {{"exit", ext}, {"cd", cdr}, {NULL, NULL}};
+	builtin_t build[] = {{"exit", ext}, {NULL, NULL}};
 
 	cp = build[0];/*cp holds the array value keeping code short*/
-	for (argc = 0; argv[argc];)/*getting argc*/
+	for (argc = 0; argv[argc] != NULL;)/*getting argc*/
 		argc++;
-	for (idx1 = idx2 = 0; cp.cmd;)
+	for (idx1 = idx2 = 0; cp.cmd && argv[0];)
 	{
 		if (cp.cmd[idx2] == argv[0][idx2])
 		{/*comparing command and  cmd in the struct*/
-			if (cp.cmd[idx2 + 1] == '\0' && argv[0][idx2] == '\0')
-				return (cp.cmd_f(argv, argc));/*found a match*/
+			if (cp.cmd[idx2 + 1] == '\0' && argv[0][idx2 + 1] == '\0')
+				return (cp.cmd_f(argc, argv, pathead));/*found a match*/
 			idx2++;
 		}
 		else/*no match yet*/

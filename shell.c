@@ -17,7 +17,10 @@ int main(int argc, char **argv, char **env)
 	pathMeta_t *paths;
 
 	paths = NULL;
+	lineptr = NULL;
+	buff_size = 0;
 	PATH = _getenv("PATH");
+	argv = NULL;/*space to keep command line args*/
 	if (pathgen(PATH, &paths))
 	{/*error handling PATH list generation*/
 		perror("unable to generate PATH list\n");
@@ -27,23 +30,24 @@ int main(int argc, char **argv, char **env)
 	{/* giving shell ability to interprete command line args*/
 	/*cmd index is 1 in non interactive mode, and the shell is argv[0]*/
 		executor(&argv[1], env, paths);
-		pathdegen(paths);
+		pathdegen(&paths);
 		return (0);
 	}
 
-	buff_size = 0;
-	lineptr = NULL;/*space to keep command line args*/
 	write(STDOUT_FILENO, "$ ", 2);/*first prompt*/
 	while ((line_length = getline(&lineptr, &buff_size, stdin)) >= 0)
 	{
-		if (line_length > 1)
-			argv = tokenizer(lineptr);
+		(line_length > 1) ? argv = tokenizer(lineptr) : 0;
 		if (argv != NULL)
-			executor(argv, env, paths);
+		{
+			if (findib(argv, &paths) == -1)
+				executor(argv, env, paths);
+		}
 		write(STDOUT_FILENO, "$ ", 2);
 		free(argv);/*freeing argv*/
+		argv = NULL;
 	}
 	free(lineptr);/*freeing lineptr*/
-	pathdegen(paths);
+	pathdegen(&paths);
 	return (0);
 }
