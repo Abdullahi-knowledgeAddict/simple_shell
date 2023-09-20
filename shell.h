@@ -43,4 +43,6 @@ void pathdegen(pathMeta_t **pathead);
 int findib(char **argv, pathMeta_t **pathead);
 int ext(size_t argc, char **argv, pathMeta_t **pathead);
 int cdr(size_t argc, char **argv, pathMeta_t **pathead);
+void printfd(char *s, int fd);
+int printenv(size_t argc, char **argv, pathMeta_t **pathead);
 #endif

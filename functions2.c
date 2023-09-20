@@ -84,7 +84,7 @@ int findib(char **argv, pathMeta_t **pathead)
 {
 	size_t idx1, idx2, argc; /* 1 for array 2 for .cmd*/
 	builtin_t cp;
-	builtin_t build[] = {{"exit", ext}, {NULL, NULL}};
+	builtin_t build[] = {{"exit", ext}, {"env", printenv}, {NULL, NULL}};
 
 	cp = build[0];/*cp holds the array value keeping code short*/
 	for (argc = 0; argv[argc] != NULL;)/*getting argc*/
@@ -104,4 +104,18 @@ int findib(char **argv, pathMeta_t **pathead)
 		}
 	}
 	return (-1);/*no match at all*/
+}
+
+/**
+ * printfd - writes a given string to a given file descriptor
+ * @fd: file descriptor to an open file/stream
+ * @s:  pointer to the address of the string (bunch of chars)
+ */
+void printfd(char *s, int fd)
+{
+	size_t n;
+
+	for (n = 0; s[n];)
+		n++; /*getting the length of the string*/
+	write(fd, s, n);
 }
