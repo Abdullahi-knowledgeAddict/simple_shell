@@ -34,18 +34,18 @@ int main(int argc, char **argv, char **env)
 		return (0);
 	}
 
-	write(STDOUT_FILENO, "$ ", 2);/*first prompt*/
+	prompt();
 	while ((line_length = getline(&lineptr, &buff_size, stdin)) >= 0)
 	{
-		(line_length > 1) ? argv = tokenizer(lineptr) : 0;
+		(line_length > 1) ? argv = tokenizer(lineptr) : NULL;
 		if (argv != NULL)
 		{
 			if (findib(argv, &paths) == -1)
 				executor(argv, env, paths);
 		}
-		write(STDOUT_FILENO, "$ ", 2);
 		free(argv);/*freeing argv*/
 		argv = NULL;
+		prompt();
 	}
 	free(lineptr);/*freeing lineptr*/
 	pathdegen(&paths);

@@ -31,6 +31,7 @@ typedef struct builtin
 	int (*cmd_f)(size_t argc, char **argv, pathMeta_t **paths);
 } builtin_t; /*type to declare this struct type*/
 extern char **environ;
+void prompt(void);
 int executor(char **argv, char **env, pathMeta_t *paths);
 char **tokenizer(char *lineptr);
 int comligner(char **lineptr);

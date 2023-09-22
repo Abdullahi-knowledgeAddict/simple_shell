@@ -16,8 +16,8 @@ int executor(char **argv, char **env, pathMeta_t *paths)
 
 	path = NULL;
 	/*checking if argv[0] is NULL to stop execution*/
-	if (!argv[0])
-		return (0);
+	if (argv[0] == NULL)
+		return (-1);
 	path = pathfinder(argv, paths);
 	if (path)/*check for commands existence*/
 	{
@@ -30,18 +30,20 @@ int executor(char **argv, char **env, pathMeta_t *paths)
 			exit(-1);
 		}
 		else if (pid > 0)/*making parent process wait*/
+		{
 			wait(&status);
+			if (path != argv[0])
+				free(path);/*prevent 2x free*/
+			path = NULL;/*since, a function exist to do ^ it*/
+		}
 		else /*what happens when process duplication fails*/
 		{
 			perror("calling process was not duplicated\n");
 			return (-1);
 		}
-		free(path);
 	}
 	else/* if command doesn't exist*/
-	{
 		perror(argv[0]);
-	}
 	return (0);
 }
 /**
