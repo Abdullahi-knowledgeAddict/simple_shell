@@ -10,12 +10,44 @@
  */
 int ext(size_t argc, char **argv, pathMeta_t **pathead)
 {
-	(void) argc;
+	unsigned long n;
+	int idx;
+
+	 idx = n = 0;
 /*freeing malloc'ed spaces before existing*/
-	free(argv[0]);
-	free(argv);
-	pathdegen(pathead);
-	_exit(0);
+	if (argc == 1)
+	{
+		free(argv[0]);
+		free(argv);
+		pathdegen(pathead);
+		_exit(0);
+	}
+	else if (argc > 1)
+	{
+		while (argv[1][idx])/*extracting the status, from argv[1]*/
+		{
+			if (argv[1][idx] >= 48 && argv[1][idx] <= 57)
+			{
+				n *= 10;
+				n += argv[1][idx] - '0';
+			}
+			else
+			{
+				printfd(argv[0], STDERR_FILENO);
+				printfd(": ", STDERR_FILENO);
+				printfd(argv[1], STDERR_FILENO);
+				printfd(" : ", STDERR_FILENO);
+				printfd("Illegal Argument\n", STDERR_FILENO);
+				return (0);
+			}
+			idx++;
+		}
+		free(argv[0]);
+		free(argv);
+		pathdegen(pathead);
+		_exit(n & 0xFF);
+	}
+	return (0);
 }
 
 /**
