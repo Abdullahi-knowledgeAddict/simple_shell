@@ -78,6 +78,8 @@ int printenv(size_t argc, char **argv, pathMeta_t **pathead)
 /**
  * _setenv - Initialize a new environment variable, or modify an existing one
  * @argv: pointer the command line argument containing VARIABLE & VALUE
+ * @argc: The number of element with argv
+ * @pathead: Head of linked of search paths in PATH variable
  *
  * Return: zero on success && print something on stderr on failure
  */
@@ -92,8 +94,8 @@ int _setenv(size_t argc, char **argv, pathMeta_t **pathead)
 		printfd("usage: setenv VARIABLE VALUE\n", 2);
 		return (-1);
 	}
-	copyarg = argv[1];
-	for (var_len = tot_len =  0; copyarg[var_len]; var_len++)
+
+	for (copyarg = argv[1], var_len = tot_len =  0; copyarg[var_len];)
 	{/*loop to get length*/
 		if (!(copyarg[var_len + 1]) && copyarg != argv[2])
 		{
@@ -101,24 +103,21 @@ int _setenv(size_t argc, char **argv, pathMeta_t **pathead)
 			copyarg = argv[2];
 			tot_len += var_len;
 			var_len = -1;/*for next '++' to make it zero*/
-		}
+		} /*always do:*/ var_len++;
 	}
-	tot_len += var_len;
-	copyarg = malloc(sizeof(char) * tot_len);
+	tot_len += var_len, /*Then*/ copyarg = malloc(sizeof(char) * tot_len);
 	if (copyarg == NULL)
 	{
 		printfd("Space could not be allocated for new env\n", 2);
 		return (-1);
 	}
-	copyarg[tot_len - 1] = '\0';
-	copyarg2 = argv[1];
+	copyarg[tot_len - 1] = '\0', /*Then*/ copyarg2 = argv[1];
 	for (tot_len = var_len = 0; copyarg2[var_len]; tot_len++, var_len++)
 	{/*loop synthesizes the variable*/
 		copyarg[tot_len] = copyarg2[var_len];
 		if (!(copyarg2[var_len + 1]) && copyarg2 == argv[1])
 		{
-			copyarg[++tot_len] = '=';
-			var_len = -1;
+			copyarg[++tot_len] = '=', var_len = -1;
 			copyarg2 = argv[2];
 		}
 	}
@@ -129,7 +128,9 @@ int _setenv(size_t argc, char **argv, pathMeta_t **pathead)
 }
 /**
  * _unsetenv - removes an environmental variable
- * @name: the name of the variable
+ * @argv: pointer the command line argument containing VARIABLE & VALUE
+ * @argc: The number of element with argv
+ * @pathead: Head of linked of search paths in PATH variable
  *
  * Return: zero on success -1 otherwise
  */

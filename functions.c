@@ -107,8 +107,7 @@ char **tokenizer(char **lptr)
 		printfd("command could not be tokenized\n", 2);
 		return (NULL);
 	}
-	ctok_len = tok_len;/*copy tok_len*/
-	for (tok_len = idx = 0; (*lptr)[idx]; idx++)
+	for (ctok_len = tok_len, tok_len = idx = 0; (*lptr)[idx]; idx++)
 	{
 		chr = *lptr + idx;/*holds index address*/
 		if (chr[0] >= '!')
