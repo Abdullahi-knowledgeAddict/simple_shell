@@ -33,9 +33,9 @@ typedef struct builtin
 extern char **environ;
 void prompt(void);
 int executor(char **argv, char **env, pathMeta_t *paths);
-char **tokenizer(char *lineptr);
+char **tokenizer(char **lineptr);
 int comligner(char **lineptr);
-char *_getenv(char *value);
+char **_getenv(char *value);
 char *pathfinder(char **cmd, pathMeta_t *pathead);
 char *_strdup(char *s);
 int pathgen(char *path, pathMeta_t **pathead);
@@ -46,4 +46,6 @@ int ext(size_t argc, char **argv, pathMeta_t **pathead);
 int cdr(size_t argc, char **argv, pathMeta_t **pathead);
 void printfd(char *s, int fd);
 int printenv(size_t argc, char **argv, pathMeta_t **pathead);
+int _setenv(size_t argc, char **argv, pathMeta_t **pathead);
+int _unsetenv(size_t argc, char **argv, pathMeta_t **pathead);
 #endif

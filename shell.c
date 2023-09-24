@@ -19,7 +19,7 @@ int main(int argc, char **argv, char **env)
 	paths = NULL;
 	lineptr = NULL;
 	buff_size = 0;
-	PATH = _getenv("PATH");
+	PATH = *(_getenv("PATH")) + 4;
 	argv = NULL;/*space to keep command line args*/
 	if (pathgen(PATH, &paths))
 	{/*error handling PATH list generation*/
@@ -37,13 +37,13 @@ int main(int argc, char **argv, char **env)
 	prompt();
 	while ((line_length = getline(&lineptr, &buff_size, stdin)) >= 0)
 	{
-		(line_length > 1) ? argv = tokenizer(lineptr) : NULL;
+		(line_length > 1) ? argv = tokenizer(&lineptr) : NULL;
 		if (argv != NULL)
 		{
 			if (findib(argv, &paths) == -1)
 				executor(argv, env, paths);
 		}
-		free(argv);/*freeing argv*/
+		free(argv);	/*freeing argv and the line duplicate*/
 		argv = NULL;
 		prompt();
 	}

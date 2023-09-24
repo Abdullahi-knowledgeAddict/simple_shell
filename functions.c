@@ -26,7 +26,7 @@ int executor(char **argv, char **env, pathMeta_t *paths)
 		{
 			/*Handling execution failure*/
 			if (execve(path, argv, env) == -1)
-				perror("command execution failed\n");
+				printfd("command exec failed\n", 2);
 			exit(-1);
 		}
 		else if (pid > 0)/*making parent process wait*/
@@ -38,7 +38,7 @@ int executor(char **argv, char **env, pathMeta_t *paths)
 		}
 		else /*what happens when process duplication fails*/
 		{
-			perror("calling process was not duplicated\n");
+			printfd("calling process was not duplicated\n", 2);
 			return (-1);
 		}
 	}
@@ -80,59 +80,61 @@ int comligner(char **lineptr)
 
 /**
  * tokenizer - takes a buffer container a command line and tokenizes it
- * @lineptr: the buffer container the command line
+ * @lptr: the address buffer container the command line
  *
- * Return: a buffer container the address of each token
+ * Return: a buffer containing the address of each token
  */
-char **tokenizer(char *lineptr)
-{/* 9 = ' ', 32 = '	', 10 = '\n', 0 = '\0'*/
-	int argc, andex, lndex;
-	char **argv, *c;
+char **tokenizer(char **lptr)
+{
+	char **argv, *toks, *chr;
+	size_t argc, tok_len, idx, ctok_len;
 
-	argc = comligner(&lineptr);/* align command and get req spac for args*/
-	argv = malloc(sizeof(char *) * argc);
-	if (argv == NULL)/* error handling*/
-		perror(NULL);
-	for (andex = lndex = 0; lineptr[lndex] != '\0' && argv; lndex++)
-	{
-		c = lineptr + lndex;/* use c to shorten code using char addr*/
-		if (lndex == 0)/* first arg*//* assigning args to argv*/
-			argv[andex++] = c;
-		if (*c >= '!')/*seperate each word in lineptr*/
+	for (argc = comligner(lptr), tok_len = idx = 0; (*lptr)[idx]; idx++)
+	{/*getting  length and removing unnecessary spaces*/
+		chr = *lptr + idx;
+		if (chr[0] >= '!')
 		{
-			if (*(c + 1) == 9 || *(c + 1) == 32 || *(c + 1) == 10)
-			{
-				*(c + 1) = 0;/*seperating with '\0'*/
-				lndex++;
-				if (*(c + 2) >= '!')
-				{/* when a char is after the space*/
-					++lndex;
-					argv[andex++] = lineptr + lndex;
-				}
-			}
+			tok_len++;
+			(chr[1] == 32 || chr[1] == 9) ? tok_len++ : 0;
 		}
-		else if (*c == 32 || *c == 9)
-		{/*remaining args*/
-			if (*(c + 1) == 10)
-			{/*taking care of newline*/
-				*(c + 1) = 0;
-				lndex++;
-			}
-			else if (*(c + 1) >= '!')
-				argv[andex++] = c + 1;
+	} /*now allocating spaces*/
+	argv = malloc(sizeof(char *) * (argc + 1));
+	toks = malloc(sizeof(char) * tok_len);
+	if (argv == NULL || toks == NULL)
+	{
+		free(argv);
+		free(toks);
+		printfd("command could not be tokenized\n", 2);
+		return (NULL);
+	}
+	ctok_len = tok_len;/*copy tok_len*/
+	for (tok_len = idx = 0; (*lptr)[idx]; idx++)
+	{
+		chr = *lptr + idx;/*holds index address*/
+		if (chr[0] >= '!')
+		{
+			toks[tok_len++] = chr[0];
+			if (chr[1] == 32 || chr[1] == 9 || chr[1] == 10)
+				toks[tok_len++] = '\0';
 		}
 	}
-	argv[andex] = NULL;/*adding NULL at the end of argv*/
+	free(*lptr);	/*free the now dormant lineptr*/
+	argv[0] = *lptr = toks;	/*initializing argv*/
+	for (tok_len = 1, idx = 0; idx < ctok_len; idx++)
+	{
+		if (toks[idx] == 0 && toks[idx + 1] != 0)
+			argv[tok_len++] = toks + idx + 1;
+	}
+	argv[tok_len] = NULL;
 	return (argv);
 }
-
 /**
  * _getenv - Searches the environmental variable for
  * @name: variable name
  *
- * Return: a pointer to the corresponding value or NULL if it doesn't exist
+ * Return: a pointer to the corresponding variable or NULL if it doesn't exist
  */
-char *_getenv(char *name)
+char **_getenv(char *name)
 {
 	char **ev;
 	int sd;/* sd-> string index*/
@@ -144,7 +146,7 @@ char *_getenv(char *name)
 		if (name[sd] == (*ev)[sd])
 		{
 			if (name[sd + 1] == '\0' && (*ev)[sd + 1] == '=')
-				return ((*ev) + sd + 2);
+				return (ev);
 			sd++;
 		}
 		else
@@ -153,7 +155,7 @@ char *_getenv(char *name)
 			sd = 0;
 		}
 	}
-	return (*ev);
+	return (ev);
 }
 /**
  * pathfinder - find the specific path to command or confirm it existence

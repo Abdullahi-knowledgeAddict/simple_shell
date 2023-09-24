@@ -84,7 +84,9 @@ int findib(char **argv, pathMeta_t **pathead)
 {
 	size_t idx1, idx2, argc; /* 1 for array 2 for .cmd*/
 	builtin_t cp;
-	builtin_t build[] = {{"exit", ext}, {"env", printenv}, {NULL, NULL}};
+	builtin_t build[] = {{"exit", ext}, {"env", printenv},
+			{"setenv", _setenv}, {"unsetenv", _unsetenv},
+			{NULL, NULL}};
 
 	cp = build[0];/*cp holds the array value keeping code short*/
 	for (argc = 0; argv[argc] != NULL;)/*getting argc*/
